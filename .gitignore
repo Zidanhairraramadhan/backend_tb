@@ -1,0 +1,25 @@
+# =========================================================================
+# MusicLink Backend — GitIgnore Configuration
+# =========================================================================
+
+# ── Credentials & Environment ──
+.env
+
+# ── Local Database files ──
+*.db
+
+# ── Compiled Binaries ──
+*.exe
+server
+server.exe~
+
+# ── Operating System Files ──
+.DS_Store
+Thumbs.db
+
+# ── IDEs and Editors ──
+.idea/
+.vscode/
+*.suo
+*.sw?
+*.log
