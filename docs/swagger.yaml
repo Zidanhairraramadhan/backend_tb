@@ -1,0 +1,487 @@
+basePath: /
+definitions:
+  model.ChangePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        minLength: 6
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  model.CreateLinkRequest:
+    properties:
+      platform:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    required:
+    - platform
+    - title
+    - url
+    type: object
+  model.Link:
+    properties:
+      active:
+        type: boolean
+      clicks:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      platform:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  model.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  model.ProfileRequest:
+    properties:
+      bio:
+        type: string
+      country:
+        type: string
+      genre:
+        type: string
+      name:
+        type: string
+    type: object
+  model.RegisterRequest:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - name
+    - password
+    - username
+    type: object
+  model.UpdateLinkRequest:
+    properties:
+      active:
+        type: boolean
+      platform:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    type: object
+  model.User:
+    properties:
+      avatar_initial:
+        type: string
+      bio:
+        type: string
+      country:
+        type: string
+      created_at:
+        type: string
+      genre:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+      verified:
+        type: boolean
+    type: object
+host: localhost:5000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is the smart music profile link aggregator API server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: MusicLink API
+  version: "1.0"
+paths:
+  /api/change-password:
+    put:
+      consumes:
+      - application/json
+      description: Update password for current logged-in user
+      parameters:
+      - description: Change password body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Change password
+      tags:
+      - auth
+  /api/links:
+    get:
+      description: Get all links belonging to the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Link'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user links
+      tags:
+      - links
+    post:
+      consumes:
+      - application/json
+      description: Add a new link under the authenticated user
+      parameters:
+      - description: Link creation body
+        in: body
+        name: link
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateLinkRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create link
+      tags:
+      - links
+  /api/links/{id}:
+    delete:
+      description: Remove link by ID
+      parameters:
+      - description: Link ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete link
+      tags:
+      - links
+    get:
+      description: Get link by ID, only accessible by link owner or admin
+      parameters:
+      - description: Link ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Link'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get link detail
+      tags:
+      - links
+    put:
+      consumes:
+      - application/json
+      description: Update fields of an existing link by ID
+      parameters:
+      - description: Link ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Link update fields
+        in: body
+        name: link
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateLinkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update link
+      tags:
+      - links
+  /api/profile:
+    get:
+      description: Get profile of currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - profile
+    put:
+      consumes:
+      - application/json
+      description: Update profile fields for the currently authenticated user
+      parameters:
+      - description: Profile update fields
+        in: body
+        name: profile
+        required: true
+        schema:
+          $ref: '#/definitions/model.ProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - profile
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT bearer token
+      parameters:
+      - description: Login request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - auth
+  /public/{username}:
+    get:
+      description: Get public bio details and active links of an artist by username
+      parameters:
+      - description: Artist username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get public profile
+      tags:
+      - public
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account (role defaults to 'user' unless username
+        contains 'admin')
+      parameters:
+      - description: Register request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register user
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer " followed by your JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
