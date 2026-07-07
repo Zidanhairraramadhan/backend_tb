@@ -22,10 +22,15 @@ func SetupRoutes(app *fiber.App, authH *handler.AuthHandler, userH *handler.User
 
 	// Public Profile Route
 	app.Get("/public/:username", linkH.GetPublicProfile)
-	app.Post("/api/clicks/:id", linkH.IncrementClickCounts)
+	app.Post("/api/links/:id/click", linkH.IncrementClickCounts)
 
 	// Protected Routes Group
 	api := app.Group("/api", middleware.JWTProtected())
+
+	// Admin Area
+	api.Get("/admin/users", middleware.RequireAdmin(), func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"message": "Daftar pengguna (Area Admin)"})
+	})
 
 	// Auth Settings
 	api.Put("/change-password", authH.ChangePassword)

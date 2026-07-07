@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ func getJWTSecret() []byte {
 	if len(jwtKey) == 0 {
 		secret := os.Getenv("JWT_SECRET")
 		if secret == "" {
-			secret = "supersecretjwtkey123!musiclinkplatformjwtclaimskey"
+			log.Fatal("❌ FATAL ERROR: JWT_SECRET is required but not set in .env")
 		}
 		jwtKey = []byte(secret)
 	}

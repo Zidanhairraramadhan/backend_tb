@@ -4,7 +4,7 @@ import "time"
 
 type Link struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
-	UserID    uint      `gorm:"not null" json:"user_id"`
+	UserID    uint      `gorm:"index;not null" json:"user_id"`
 	Platform  string    `gorm:"type:varchar(50);not null" json:"platform"`
 	Title     string    `gorm:"type:varchar(100);not null" json:"title"`
 	URL       string    `gorm:"type:text;not null" json:"url"`
@@ -14,9 +14,9 @@ type Link struct {
 }
 
 type CreateLinkRequest struct {
-	Platform string `json:"platform" validate:"required"`
-	Title    string `json:"title" validate:"required"`
-	URL      string `json:"url" validate:"required,url"`
+	Platform string `json:"platform"`
+	Title    string `json:"title"`
+	URL      string `json:"url"`
 }
 
 type UpdateLinkRequest struct {
