@@ -347,6 +347,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/links/{id}/click": {
+            "post": {
+                "description": "Tambah hitungan klik sebesar +1 pada sebuah tautan berdasarkan ID-nya. Dipanggil oleh halaman publik setiap kali pengunjung mengklik tautan.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Increment link click",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Link ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/profile": {
             "get": {
                 "security": [

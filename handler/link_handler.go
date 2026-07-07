@@ -263,6 +263,15 @@ func (h *LinkHandler) GetPublicProfile(c *fiber.Ctx) error {
 }
 
 // IncrementClickCounts Registers link click redirect count
+// @Summary      Increment link click
+// @Description  Tambah hitungan klik sebesar +1 pada sebuah tautan berdasarkan ID-nya. Dipanggil oleh halaman publik setiap kali pengunjung mengklik tautan.
+// @Tags         links
+// @Produce      json
+// @Param        id   path      int  true  "Link ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /api/links/{id}/click [post]
 func (h *LinkHandler) IncrementClickCounts(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {

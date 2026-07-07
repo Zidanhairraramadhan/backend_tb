@@ -5,10 +5,11 @@ import (
 	"os"
 	"strings"
 
+	"musiclink-backend/model"
+
 	"github.com/glebarez/sqlite" // Pure Go SQLite driver (no CGO required)
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"musiclink-backend/model"
 )
 
 var DB *gorm.DB
@@ -35,7 +36,13 @@ func ConnectDB() {
 
 	if dsn != "" {
 		log.Println("🔌 Connecting to Supabase PostgreSQL...")
-		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+		// MODIFIKASI DI SINI: Menggunakan postgres.New untuk menambahkan PreferSimpleProtocol
+		DB, err = gorm.Open(postgres.New(postgres.Config{
+			DSN:                  dsn,
+			PreferSimpleProtocol: true, // Menonaktifkan prepared statements untuk kompatibilitas pooler Supabase (port 6543)
+		}), &gorm.Config{})
+
 		if err != nil {
 			log.Printf("⚠️ Failed to connect to Supabase PostgreSQL: %v\n", err)
 			log.Println("🔄 Falling back to local pure-Go SQLite database (gorm.db)...")

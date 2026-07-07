@@ -337,6 +337,37 @@ paths:
       summary: Update link
       tags:
       - links
+  /api/links/{id}/click:
+    post:
+      description: Tambah hitungan klik sebesar +1 pada sebuah tautan berdasarkan
+        ID-nya. Dipanggil oleh halaman publik setiap kali pengunjung mengklik tautan.
+      parameters:
+      - description: Link ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Increment link click
+      tags:
+      - links
   /api/profile:
     get:
       description: Get profile of currently authenticated user

@@ -60,11 +60,9 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to encrypt password"})
 	}
 
-	// Determine Role
+	// Semua pendaftaran publik mendapat role 'user' secara mutlak.
+	// Role 'admin' hanya dapat diberikan secara manual oleh administrator database.
 	role := "user"
-	if strings.Contains(strings.ToLower(req.Username), "admin") {
-		role = "admin"
-	}
 
 	// Derive avatar initial
 	names := strings.Fields(req.Name)
@@ -86,7 +84,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		Bio:           "Hello, I am using MusicLink! 🎧",
 		Country:       "United States",
 		Genre:         "Pop",
-		Verified:      role == "admin", // Admin is auto-verified for cool look
+		Verified:      false, // Verifikasi hanya diberikan secara manual oleh admin
 	}
 
 	if err := h.userRepo.Create(user); err != nil {
