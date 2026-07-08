@@ -14,6 +14,7 @@ type User struct {
 	AvatarInitial string    `gorm:"type:varchar(5)" json:"avatar_initial"`
 	Verified      bool      `gorm:"default:false" json:"verified"`
 	CreatedAt     time.Time `json:"created_at"`
+	Links         []Link    `gorm:"foreignKey:UserID" json:"links"`
 }
 
 type RegisterRequest struct {

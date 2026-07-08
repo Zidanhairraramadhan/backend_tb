@@ -8,7 +8,7 @@ import (
 	"musiclink-backend/middleware"
 )
 
-func SetupRoutes(app *fiber.App, authH *handler.AuthHandler, userH *handler.UserHandler, linkH *handler.LinkHandler) {
+func SetupRoutes(app *fiber.App, authH *handler.AuthHandler, userH *handler.UserHandler, linkH *handler.LinkHandler, metadataH *handler.MetadataHandler, adminH *handler.AdminHandler, publicH *handler.PublicHandler) {
 	// Logger & CORS Middleware
 	app.Use(logger.New())
 	app.Use(middleware.SetupCORS())
@@ -20,17 +20,21 @@ func SetupRoutes(app *fiber.App, authH *handler.AuthHandler, userH *handler.User
 	app.Post("/register", authH.Register)
 	app.Post("/login", authH.Login)
 
-	// Public Profile Route
+	// Public Profile Route (Legacy/Alternative)
 	app.Get("/public/:username", linkH.GetPublicProfile)
 	app.Post("/api/links/:id/click", linkH.IncrementClickCounts)
+
+	// Public Profile Endpoint (Preloaded Links)
+	app.Get("/api/public/users/:username", publicH.GetPublicProfile)
+
+	// Public Universal oEmbed Metadata (no auth required)
+	app.Get("/api/link/metadata", metadataH.GetLinkMetadata)
 
 	// Protected Routes Group
 	api := app.Group("/api", middleware.JWTProtected())
 
 	// Admin Area
-	api.Get("/admin/users", middleware.RequireAdmin(), func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "Daftar pengguna (Area Admin)"})
-	})
+	api.Get("/admin/users", middleware.RequireAdmin(), adminH.GetAllUsers)
 
 	// Auth Settings
 	api.Put("/change-password", authH.ChangePassword)

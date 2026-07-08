@@ -51,14 +51,16 @@ func main() {
 	authHandler := handler.NewAuthHandler(userRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	linkHandler := handler.NewLinkHandler(linkRepo, userRepo)
+	metadataHandler := handler.NewMetadataHandler()
+	adminHandler := handler.NewAdminHandler(userRepo)
+	publicHandler := handler.NewPublicHandler(userRepo)
 
 	// Create Fiber App
 	app := fiber.New(fiber.Config{
 		AppName: "MusicLink API Platform v1.0",
 	})
 
-	// Setup Router
-	router.SetupRoutes(app, authHandler, userHandler, linkHandler)
+	router.SetupRoutes(app, authHandler, userHandler, linkHandler, metadataHandler, adminHandler, publicHandler)
 
 	// Start Server
 	port := os.Getenv("PORT")
