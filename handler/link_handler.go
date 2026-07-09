@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,7 +30,8 @@ func NewLinkHandler(linkRepo *repository.LinkRepository, userRepo *repository.Us
 // @Failure      401      {object}  map[string]interface{}
 // @Router       /api/links [get]
 func (h *LinkHandler) GetMyLinks(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	// user_id sekarang bertipe string (UUID)
+	userID := c.Locals("user_id").(string)
 
 	links, err := h.linkRepo.GetAllByUserID(userID)
 	if err != nil {
@@ -47,22 +47,22 @@ func (h *LinkHandler) GetMyLinks(c *fiber.Ctx) error {
 // @Tags         links
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id   path      int  true  "Link ID"
+// @Param        id   path      string  true  "Link ID (UUID)"
 // @Success      200      {object}  model.Link
 // @Failure      401      {object}  map[string]interface{}
 // @Failure      403      {object}  map[string]interface{}
 // @Failure      404      {object}  map[string]interface{}
 // @Router       /api/links/{id} [get]
 func (h *LinkHandler) GetLinkByID(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(string)
 	role := c.Locals("role").(string)
 
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
+	id := c.Params("id")
+	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid link ID"})
 	}
 
-	link, err := h.linkRepo.GetByID(uint(id))
+	link, err := h.linkRepo.GetByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Link not found"})
 	}
@@ -88,7 +88,8 @@ func (h *LinkHandler) GetLinkByID(c *fiber.Ctx) error {
 // @Failure      401      {object}  map[string]interface{}
 // @Router       /api/links [post]
 func (h *LinkHandler) CreateLink(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	// user_id sekarang bertipe string (UUID)
+	userID := c.Locals("user_id").(string)
 
 	req := new(model.CreateLinkRequest)
 	if err := c.BodyParser(req); err != nil {
@@ -114,6 +115,7 @@ func (h *LinkHandler) CreateLink(c *fiber.Ctx) error {
 		Platform: strings.ToLower(req.Platform),
 		Title:    req.Title,
 		URL:      req.URL,
+		ImageURL: req.ImageURL, // Menyimpan hasil auto-fill thumbnail
 		Active:   true,
 		Clicks:   0,
 	}
@@ -135,7 +137,7 @@ func (h *LinkHandler) CreateLink(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id    path      int                      true  "Link ID"
+// @Param        id    path      string                   true  "Link ID (UUID)"
 // @Param        link  body      model.UpdateLinkRequest  true  "Link update fields"
 // @Success      200      {object}  map[string]interface{}
 // @Failure      400      {object}  map[string]interface{}
@@ -144,11 +146,11 @@ func (h *LinkHandler) CreateLink(c *fiber.Ctx) error {
 // @Failure      404      {object}  map[string]interface{}
 // @Router       /api/links/{id} [put]
 func (h *LinkHandler) UpdateLink(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(string)
 	role := c.Locals("role").(string)
 
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
+	id := c.Params("id")
+	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid link ID"})
 	}
 
@@ -157,7 +159,7 @@ func (h *LinkHandler) UpdateLink(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid JSON request"})
 	}
 
-	link, err := h.linkRepo.GetByID(uint(id))
+	link, err := h.linkRepo.GetByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Link not found"})
 	}
@@ -180,6 +182,9 @@ func (h *LinkHandler) UpdateLink(c *fiber.Ctx) error {
 		}
 		link.URL = req.URL
 	}
+	if req.ImageURL != "" {
+		link.ImageURL = req.ImageURL
+	}
 	if req.Active != nil {
 		link.Active = *req.Active
 	}
@@ -200,22 +205,22 @@ func (h *LinkHandler) UpdateLink(c *fiber.Ctx) error {
 // @Tags         links
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id   path      int  true  "Link ID"
+// @Param        id   path      string  true  "Link ID (UUID)"
 // @Success      200      {object}  map[string]interface{}
 // @Failure      401      {object}  map[string]interface{}
 // @Failure      403      {object}  map[string]interface{}
 // @Failure      404      {object}  map[string]interface{}
 // @Router       /api/links/{id} [delete]
 func (h *LinkHandler) DeleteLink(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(string)
 	role := c.Locals("role").(string)
 
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
+	id := c.Params("id")
+	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid link ID"})
 	}
 
-	link, err := h.linkRepo.GetByID(uint(id))
+	link, err := h.linkRepo.GetByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Link not found"})
 	}
@@ -225,7 +230,7 @@ func (h *LinkHandler) DeleteLink(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"message": "Forbidden: You do not own this link"})
 	}
 
-	if err := h.linkRepo.Delete(uint(id)); err != nil {
+	if err := h.linkRepo.Delete(id); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to delete link"})
 	}
 
@@ -267,18 +272,18 @@ func (h *LinkHandler) GetPublicProfile(c *fiber.Ctx) error {
 // @Description  Tambah hitungan klik sebesar +1 pada sebuah tautan berdasarkan ID-nya. Dipanggil oleh halaman publik setiap kali pengunjung mengklik tautan.
 // @Tags         links
 // @Produce      json
-// @Param        id   path      int  true  "Link ID"
+// @Param        id   path      string  true  "Link ID (UUID)"
 // @Success      200  {object}  map[string]interface{}
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      500  {object}  map[string]interface{}
 // @Router       /api/links/{id}/click [post]
 func (h *LinkHandler) IncrementClickCounts(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
+	id := c.Params("id")
+	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid link ID"})
 	}
 
-	err = h.linkRepo.IncrementClicks(uint(id))
+	err := h.linkRepo.IncrementClicks(id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to increment clicks"})
 	}

@@ -17,15 +17,17 @@ func (r *LinkRepository) Create(link *model.Link) error {
 	return r.db.Create(link).Error
 }
 
-func (r *LinkRepository) GetAllByUserID(userID uint) ([]model.Link, error) {
+// GetAllByUserID mengambil semua link milik user berdasarkan UUID user
+func (r *LinkRepository) GetAllByUserID(userID string) ([]model.Link, error) {
 	var links []model.Link
-	err := r.db.Where("user_id = ?", userID).Order("id desc").Find(&links).Error
+	err := r.db.Where("user_id = ?", userID).Order("created_at desc").Find(&links).Error
 	return links, err
 }
 
-func (r *LinkRepository) GetByID(id uint) (*model.Link, error) {
+// GetByID mengambil link berdasarkan UUID link
+func (r *LinkRepository) GetByID(id string) (*model.Link, error) {
 	var link model.Link
-	err := r.db.First(&link, id).Error
+	err := r.db.Where("id = ?", id).First(&link).Error
 	if err != nil {
 		return nil, err
 	}
@@ -36,16 +38,19 @@ func (r *LinkRepository) Update(link *model.Link) error {
 	return r.db.Save(link).Error
 }
 
-func (r *LinkRepository) Delete(id uint) error {
-	return r.db.Delete(&model.Link{}, id).Error
+// Delete menghapus link berdasarkan UUID link
+func (r *LinkRepository) Delete(id string) error {
+	return r.db.Where("id = ?", id).Delete(&model.Link{}).Error
 }
 
-func (r *LinkRepository) GetActiveByUserID(userID uint) ([]model.Link, error) {
+// GetActiveByUserID mengambil semua link aktif milik user berdasarkan UUID user
+func (r *LinkRepository) GetActiveByUserID(userID string) ([]model.Link, error) {
 	var links []model.Link
-	err := r.db.Where("user_id = ? AND active = ?", userID, true).Order("id desc").Find(&links).Error
+	err := r.db.Where("user_id = ? AND active = ?", userID, true).Order("created_at desc").Find(&links).Error
 	return links, err
 }
 
-func (r *LinkRepository) IncrementClicks(id uint) error {
+// IncrementClicks menambah hitungan klik pada sebuah link berdasarkan UUID link
+func (r *LinkRepository) IncrementClicks(id string) error {
 	return r.db.Model(&model.Link{}).Where("id = ?", id).UpdateColumn("clicks", gorm.Expr("clicks + 1")).Error
 }

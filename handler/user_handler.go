@@ -26,7 +26,8 @@ func NewUserHandler(userRepo *repository.UserRepository) *UserHandler {
 // @Failure      401      {object}  map[string]interface{}
 // @Router       /api/profile [get]
 func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	// user_id sekarang bertipe string (UUID)
+	userID := c.Locals("user_id").(string)
 
 	user, err := h.userRepo.GetByID(userID)
 	if err != nil {
@@ -49,7 +50,8 @@ func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
 // @Failure      401      {object}  map[string]interface{}
 // @Router       /api/profile [put]
 func (h *UserHandler) UpdateProfile(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	// user_id sekarang bertipe string (UUID)
+	userID := c.Locals("user_id").(string)
 
 	req := new(model.ProfileRequest)
 	if err := c.BodyParser(req); err != nil {
@@ -79,6 +81,13 @@ func (h *UserHandler) UpdateProfile(c *fiber.Ctx) error {
 	user.Bio = req.Bio
 	user.Genre = req.Genre
 	user.Country = req.Country
+
+	if req.AvatarURL != "" {
+		user.AvatarURL = req.AvatarURL
+	}
+	if req.CoverURL != "" {
+		user.CoverURL = req.CoverURL
+	}
 
 	if err := h.userRepo.Update(user); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to update profile"})

@@ -129,7 +129,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid username or password"})
 	}
 
-	// Generate Token
+	// Generate Token — user.ID sekarang bertipe string (UUID)
 	token, err := middleware.GenerateJWT(user.ID, user.Role)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to generate token"})
@@ -155,7 +155,8 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Failure      401      {object}  map[string]interface{}
 // @Router       /api/change-password [put]
 func (h *AuthHandler) ChangePassword(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	// user_id sekarang bertipe string (UUID)
+	userID := c.Locals("user_id").(string)
 
 	req := new(model.ChangePasswordRequest)
 	if err := c.BodyParser(req); err != nil {

@@ -24,8 +24,9 @@ func getJWTSecret() []byte {
 	return jwtKey
 }
 
-// GenerateJWT generates a new token for a user
-func GenerateJWT(userID uint, role string) (string, error) {
+// GenerateJWT generates a new token for a user.
+// userID menggunakan string karena ID di database bertipe UUID.
+func GenerateJWT(userID string, role string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
 		"role":    role,
@@ -75,17 +76,18 @@ func JWTProtected() fiber.Handler {
 			})
 		}
 
-		// Inject claims into fiber context
-		userIDFloat, ok := claims["user_id"].(float64)
-		if !ok {
+		// Inject claims ke fiber context.
+		// user_id disimpan sebagai string (UUID).
+		userID, ok := claims["user_id"].(string)
+		if !ok || userID == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": "Unauthorized: Missing user_id in claims",
+				"message": "Unauthorized: Missing or invalid user_id in claims",
 			})
 		}
 
 		role, _ := claims["role"].(string)
 
-		c.Locals("user_id", uint(userIDFloat))
+		c.Locals("user_id", userID)
 		c.Locals("role", role)
 
 		return c.Next()

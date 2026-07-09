@@ -17,9 +17,10 @@ func (r *UserRepository) Create(user *model.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *UserRepository) GetByID(id uint) (*model.User, error) {
+// GetByID mencari user berdasarkan UUID (string)
+func (r *UserRepository) GetByID(id string) (*model.User, error) {
 	var user model.User
-	err := r.db.First(&user, id).Error
+	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -52,9 +53,6 @@ func (r *UserRepository) GetAllWithLinks() ([]model.User, error) {
 // GetByUsernameWithLinks returns a user with their associated links preloaded
 func (r *UserRepository) GetByUsernameWithLinks(username string) (*model.User, error) {
 	var user model.User
-	// Assuming you want only active links, we can preload with condition if needed,
-	// but to follow the instruction we'll preload all. If only active is needed, 
-	// we would do .Preload("Links", "active = ?", true)
 	err := r.db.Preload("Links").Where("username = ?", username).First(&user).Error
 	if err != nil {
 		return nil, err
