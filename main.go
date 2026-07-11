@@ -46,13 +46,14 @@ func main() {
 	// Initialize Repositories
 	userRepo := repository.NewUserRepository(config.DB)
 	linkRepo := repository.NewLinkRepository(config.DB)
+	adminRepo := repository.NewAdminRepository(config.DB)
 
 	// Initialize Handlers
 	authHandler := handler.NewAuthHandler(userRepo)
 	userHandler := handler.NewUserHandler(userRepo)
 	linkHandler := handler.NewLinkHandler(linkRepo, userRepo)
 	metadataHandler := handler.NewMetadataHandler()
-	adminHandler := handler.NewAdminHandler(userRepo)
+	adminHandler := handler.NewAdminHandler(userRepo, adminRepo)
 	publicHandler := handler.NewPublicHandler(userRepo)
 
 	// Create Fiber App

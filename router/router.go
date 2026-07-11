@@ -35,6 +35,7 @@ func SetupRoutes(app *fiber.App, authH *handler.AuthHandler, userH *handler.User
 
 	// Admin Area
 	api.Get("/admin/users", middleware.RequireAdmin(), adminH.GetAllUsers)
+	api.Get("/admin/stats", middleware.RequireAdmin(), adminH.GetGlobalStats)
 
 	// Auth Settings
 	api.Put("/change-password", authH.ChangePassword)
