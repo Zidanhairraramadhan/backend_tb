@@ -13,6 +13,7 @@ type Link struct {
 	ImageURL  string    `gorm:"type:text;column:image_url" json:"image_url"`
 	Active    bool      `gorm:"default:true" json:"active"`
 	Clicks    int       `gorm:"default:0" json:"clicks"`
+	Embed     bool      `gorm:"default:true" json:"embed"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -22,6 +23,7 @@ type CreateLinkRequest struct {
 	Title    string `json:"title"`
 	URL      string `json:"url"`
 	ImageURL string `json:"image_url"`
+	Embed    bool   `json:"embed"`
 }
 
 // UpdateLinkRequest adalah body untuk endpoint PUT /api/links/:id
@@ -31,4 +33,5 @@ type UpdateLinkRequest struct {
 	URL      string `json:"url"`
 	ImageURL string `json:"image_url"`
 	Active   *bool  `json:"active"`
+	Embed    *bool  `json:"embed"`
 }

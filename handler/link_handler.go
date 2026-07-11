@@ -118,6 +118,7 @@ func (h *LinkHandler) CreateLink(c *fiber.Ctx) error {
 		ImageURL: req.ImageURL, // Menyimpan hasil auto-fill thumbnail
 		Active:   true,
 		Clicks:   0,
+		Embed:    req.Embed,
 	}
 
 	if err := h.linkRepo.Create(link); err != nil {
@@ -187,6 +188,9 @@ func (h *LinkHandler) UpdateLink(c *fiber.Ctx) error {
 	}
 	if req.Active != nil {
 		link.Active = *req.Active
+	}
+	if req.Embed != nil {
+		link.Embed = *req.Embed
 	}
 
 	if err := h.linkRepo.Update(link); err != nil {
