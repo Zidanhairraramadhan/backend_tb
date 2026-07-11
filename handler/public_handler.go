@@ -27,12 +27,28 @@ func NewPublicHandler(userRepo *repository.UserRepository) *PublicHandler {
 func (h *PublicHandler) GetPublicProfile(c *fiber.Ctx) error {
 	username := c.Params("username")
 
-	user, err := h.userRepo.GetByUsernameWithLinks(username)
+	user, err := h.userRepo.GetPublicProfileByUsername(username)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": "User profile not found",
 		})
 	}
 
-	return c.JSON(user)
+	return c.Status(fiber.StatusOK).JSON(user)
+}
+
+// TrackLinkClick increments the click count of a link
+func (h *PublicHandler) TrackLinkClick(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	err := h.userRepo.IncrementLinkClick(id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to track click",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "click tracked",
+	})
 }
