@@ -59,3 +59,20 @@ func (r *UserRepository) GetByUsernameWithLinks(username string) (*model.User, e
 	}
 	return &user, nil
 }
+
+// GetPublicProfileByUsername fetches user by username with active links ordered by created_at desc
+func (r *UserRepository) GetPublicProfileByUsername(username string) (*model.User, error) {
+	var user model.User
+	err := r.db.Preload("Links", func(db *gorm.DB) *gorm.DB {
+		return db.Where("active = ?", true).Order("created_at desc")
+	}).Where("username = ?", username).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// IncrementLinkClick increments the click count of a specific link
+func (r *UserRepository) IncrementLinkClick(linkID string) error {
+	return r.db.Model(&model.Link{}).Where("id = ?", linkID).UpdateColumn("clicks", gorm.Expr("clicks + ?", 1)).Error
+}

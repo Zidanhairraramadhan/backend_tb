@@ -25,7 +25,8 @@ func SetupRoutes(app *fiber.App, authH *handler.AuthHandler, userH *handler.User
 	app.Post("/api/links/:id/click", linkH.IncrementClickCounts)
 
 	// Public Profile Endpoint (Preloaded Links)
-	app.Get("/api/public/users/:username", publicH.GetPublicProfile)
+	app.Get("/api/public/u/:username", publicH.GetPublicProfile)
+	app.Post("/api/public/link/:id/click", publicH.TrackLinkClick)
 
 	// Public Universal oEmbed Metadata (no auth required)
 	app.Get("/api/link/metadata", metadataH.GetLinkMetadata)
@@ -35,6 +36,7 @@ func SetupRoutes(app *fiber.App, authH *handler.AuthHandler, userH *handler.User
 
 	// Admin Area
 	api.Get("/admin/users", middleware.RequireAdmin(), adminH.GetAllUsers)
+	api.Get("/admin/stats", middleware.RequireAdmin(), adminH.GetGlobalStats)
 
 	// Auth Settings
 	api.Put("/change-password", authH.ChangePassword)
