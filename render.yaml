@@ -1,0 +1,25 @@
+# render.yaml — Render.com deployment config
+# Dokumentasi: https://render.com/docs/render-yaml-ref
+
+services:
+  - type: web
+    name: musiclink-backend
+    env: go
+    region: singapore           # Pilih region terdekat
+    plan: free                  # free | starter | standard
+    buildCommand: go build -ldflags="-w -s" -o musiclink-server ./
+    startCommand: ./musiclink-server
+    healthCheckPath: /health    # Render akan ping /health untuk cek status
+    envVars:
+      - key: PORT
+        value: 10000            # Render secara default menggunakan port ini
+      - key: SUPABASE_DSN
+        sync: false             # Isi manual di Render dashboard
+      - key: JWT_SECRET
+        sync: false             # Isi manual di Render dashboard (generate key yang kuat!)
+      - key: FRONTEND_URL
+        sync: false             # Contoh: https://musiclink.vercel.app
+      - key: APP_HOST
+        sync: false             # Contoh: musiclink-backend.onrender.com
+      - key: GIN_MODE
+        value: release

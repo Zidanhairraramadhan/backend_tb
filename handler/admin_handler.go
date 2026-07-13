@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 	"musiclink-backend/repository"
 )
 
@@ -90,5 +92,99 @@ func (h *AdminHandler) GetGlobalStats(c *fiber.Ctx) error {
 		"total_links":  stats.TotalLinks,
 		"total_clicks": stats.TotalClicks,
 		"recent_users": recentUsers,
+	})
+}
+
+// ForceChangePassword allows admin to reset any user's password without needing the current password
+// @Summary      Force change user password (Admin)
+// @Description  Admin can forcefully reset any user's password by user ID. Does not require the current password.
+// @Tags         admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      string  true  "Target User ID (UUID)"
+// @Param        request  body      object  true  "New password body"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]interface{}
+// @Failure      403  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]interface{}
+// @Router       /api/admin/users/{id}/password [put]
+func (h *AdminHandler) ForceChangePassword(c *fiber.Ctx) error {
+	targetUserID := c.Params("id")
+	if strings.TrimSpace(targetUserID) == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User ID is required"})
+	}
+
+	type Req struct {
+		NewPassword string `json:"new_password"`
+	}
+
+	req := new(Req)
+	if err := c.BodyParser(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid JSON request"})
+	}
+
+	if len(req.NewPassword) < 6 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "New password must be at least 6 characters"})
+	}
+
+	user, err := h.userRepo.GetByID(targetUserID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to encrypt password"})
+	}
+
+	user.Password = string(hashedPassword)
+	if err := h.userRepo.Update(user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to update password"})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":  "Password for user @" + user.Username + " has been reset successfully",
+		"username": user.Username,
+	})
+}
+
+// DeleteUser allows admin to delete any user by ID
+// @Summary      Delete a user (Admin)
+// @Description  Admin can delete any user by user ID.
+// @Tags         admin
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      string  true  "Target User ID (UUID)"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]interface{}
+// @Failure      403  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]interface{}
+// @Router       /api/admin/users/{id} [delete]
+func (h *AdminHandler) DeleteUser(c *fiber.Ctx) error {
+	targetUserID := c.Params("id")
+	if strings.TrimSpace(targetUserID) == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User ID is required"})
+	}
+
+	user, err := h.userRepo.GetByID(targetUserID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
+	}
+
+	// Jangan izinkan admin menghapus dirinya sendiri
+	currentUserID := c.Locals("user_id").(string)
+	if user.ID == currentUserID {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Admin cannot delete their own account"})
+	}
+
+	if err := h.userRepo.Delete(targetUserID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to delete user"})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "User @" + user.Username + " has been deleted successfully",
 	})
 }

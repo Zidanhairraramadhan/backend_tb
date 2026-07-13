@@ -40,6 +40,22 @@ func (r *UserRepository) Update(user *model.User) error {
 	return r.db.Save(user).Error
 }
 
+// Delete menghapus user secara kaskade (termasuk link dan click logs) dalam satu transaksi
+func (r *UserRepository) Delete(id string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("user_id = ?", id).Delete(&model.ClickLog{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", id).Delete(&model.Link{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("id = ?", id).Delete(&model.User{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 // GetAllWithLinks returns all users with their associated links preloaded
 func (r *UserRepository) GetAllWithLinks() ([]model.User, error) {
 	var users []model.User

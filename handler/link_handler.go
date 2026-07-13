@@ -8,6 +8,7 @@ import (
 	"musiclink-backend/repository"
 )
 
+
 type LinkHandler struct {
 	linkRepo *repository.LinkRepository
 	userRepo *repository.UserRepository
@@ -20,26 +21,69 @@ func NewLinkHandler(linkRepo *repository.LinkRepository, userRepo *repository.Us
 	}
 }
 
-// GetMyLinks Fetches all links for the current user
+// GetMyLinks Fetches all links for the current user with optional pagination/search
 // @Summary      Get user links
-// @Description  Get all links belonging to the authenticated user
+// @Description  Get all links belonging to the authenticated user. Supports pagination, search, and platform filter.
 // @Tags         links
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200      {array}   model.Link
-// @Failure      401      {object}  map[string]interface{}
+// @Param        page      query     int     false  "Page number (default: 1)"
+// @Param        limit     query     int     false  "Items per page (default: 0 = all)"
+// @Param        search    query     string  false  "Search by title or URL"
+// @Param        platform  query     string  false  "Filter by platform (e.g. spotify, youtube)"
+// @Success      200       {object}  map[string]interface{}
+// @Failure      401       {object}  map[string]interface{}
 // @Router       /api/links [get]
 func (h *LinkHandler) GetMyLinks(c *fiber.Ctx) error {
 	// user_id sekarang bertipe string (UUID)
 	userID := c.Locals("user_id").(string)
 
-	links, err := h.linkRepo.GetAllByUserID(userID)
+	// Baca query params untuk pagination
+	page := c.QueryInt("page", 0)
+	limit := c.QueryInt("limit", 0)
+	search := c.Query("search", "")
+	platform := c.Query("platform", "")
+
+	// Jika page atau limit tidak disertakan, kembalikan semua data (backward-compatible)
+	if page <= 0 || limit <= 0 {
+		links, err := h.linkRepo.GetAllByUserID(userID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to fetch links"})
+		}
+		return c.JSON(links)
+	}
+
+	// Mode pagination
+	params := repository.LinkQueryParams{
+		Page:     page,
+		Limit:    limit,
+		Search:   search,
+		Platform: platform,
+	}
+
+	links, total, err := h.linkRepo.GetAllByUserIDPaginated(userID, params)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to fetch links"})
 	}
 
-	return c.JSON(links)
+	totalPages := int(total) / limit
+	if int(total)%limit != 0 {
+		totalPages++
+	}
+
+	return c.JSON(fiber.Map{
+		"data": links,
+		"meta": fiber.Map{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+			"search":      search,
+			"platform":    platform,
+		},
+	})
 }
+
 
 // GetLinkByID Fetches link detail
 // @Summary      Get link detail

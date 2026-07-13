@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
 	"musiclink-backend/model"
 )
@@ -22,6 +24,49 @@ func (r *LinkRepository) GetAllByUserID(userID string) ([]model.Link, error) {
 	var links []model.Link
 	err := r.db.Where("user_id = ?", userID).Order("position ASC, created_at DESC").Find(&links).Error
 	return links, err
+}
+
+// LinkQueryParams berisi parameter untuk pagination, search, dan filter
+type LinkQueryParams struct {
+	Page     int
+	Limit    int
+	Search   string
+	Platform string
+}
+
+// GetAllByUserIDPaginated mengambil link dengan pagination, search, dan filter platform
+func (r *LinkRepository) GetAllByUserIDPaginated(userID string, params LinkQueryParams) ([]model.Link, int64, error) {
+	var links []model.Link
+	var total int64
+
+	query := r.db.Model(&model.Link{}).Where("user_id = ?", userID)
+
+	// Filter by platform
+	if params.Platform != "" && params.Platform != "all" {
+		query = query.Where("LOWER(platform) = ?", strings.ToLower(params.Platform))
+	}
+
+	// Search by title or URL
+	if params.Search != "" {
+		searchTerm := "%" + strings.ToLower(params.Search) + "%"
+		query = query.Where("LOWER(title) LIKE ? OR LOWER(url) LIKE ?", searchTerm, searchTerm)
+	}
+
+	// Count total records (before pagination)
+	query.Count(&total)
+
+	// Apply pagination
+	offset := (params.Page - 1) * params.Limit
+	err := query.Order("position ASC, created_at DESC").Offset(offset).Limit(params.Limit).Find(&links).Error
+
+	return links, total, err
+}
+
+// CountByUserID mengembalikan jumlah total link milik user
+func (r *LinkRepository) CountByUserID(userID string) (int64, error) {
+	var count int64
+	err := r.db.Model(&model.Link{}).Where("user_id = ?", userID).Count(&count).Error
+	return count, err
 }
 
 // GetByID mengambil link berdasarkan UUID link
@@ -72,3 +117,4 @@ func (r *LinkRepository) ReorderLinks(userID string, items []ReorderItem) error 
 	}
 	return tx.Commit().Error
 }
+

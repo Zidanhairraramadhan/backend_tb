@@ -12,6 +12,9 @@
 *.exe
 server
 server.exe~
+musiclink-server
+tmp_bin/
+tmp/
 
 # ── Operating System Files ──
 .DS_Store
@@ -23,3 +26,7 @@ Thumbs.db
 *.suo
 *.sw?
 *.log
+
+# ── Air hot-reload config ──
+.air.toml
+

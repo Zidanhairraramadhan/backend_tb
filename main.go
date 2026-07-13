@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -17,12 +21,11 @@ import (
 
 // @title           MusicLink API
 // @version         1.0
-// @description     This is the smart music profile link aggregator API server.
+// @description     Smart Music Profile Link Aggregator — One Link for All Your Music.
 // @termsOfService  http://swagger.io/terms/
 
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
+// @contact.name   MusicLink Support
+// @contact.email  support@musiclink.app
 
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
@@ -33,11 +36,11 @@ import (
 // @securityDefinitions.apikey  BearerAuth
 // @in                          header
 // @name                        Authorization
-// @description                 Type "Bearer " followed by your JWT token.
+// @description                 Enter your JWT token in the format: Bearer <token>
 func main() {
-	// Load environment variables
+	// Load environment variables from .env file (ignore error in production)
 	if err := godotenv.Overload(); err != nil {
-		log.Println("⚠️ Warning: No .env file found, relying on system environment variables")
+		log.Println("⚠️  No .env file found — relying on system environment variables")
 	}
 
 	// Initialize Database
@@ -59,21 +62,55 @@ func main() {
 	analyticsHandler := handler.NewAnalyticsHandler(clickLogRepo)
 	ogHandler := handler.NewOGHandler(userRepo)
 
-	// Create Fiber App
+	// Create Fiber App with custom error handler
 	app := fiber.New(fiber.Config{
 		AppName: "MusicLink API Platform v1.0",
+		// Custom global error handler — ensures consistent JSON error responses
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).JSON(fiber.Map{
+				"message": err.Error(),
+				"code":    code,
+			})
+		},
 	})
 
+	// Setup all routes
 	router.SetupRoutes(app, authHandler, userHandler, linkHandler, metadataHandler, adminHandler, publicHandler, analyticsHandler, ogHandler)
 
-	// Start Server
+	// Determine port
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "5000"
 	}
 
-	log.Printf("🚀 MusicLink Fiber Server starting on port %s...\n", port)
-	if err := app.Listen(":" + port); err != nil {
-		log.Fatalf("❌ Failed to start Fiber server: %v", err)
+	// ── Graceful Shutdown ──
+	// Listen for OS signals (Ctrl+C, kill) and shut down cleanly
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		log.Printf("🚀 MusicLink API starting on port %s...\n", port)
+		log.Printf("📚 Swagger UI available at: http://localhost:%s/docs\n", port)
+		log.Printf("💚 Health check at: http://localhost:%s/health\n", port)
+		if err := app.Listen(":" + port); err != nil {
+			log.Fatalf("❌ Server error: %v", err)
+		}
+	}()
+
+	// Block until signal received
+	<-quit
+	log.Println("⏳ Shutting down server gracefully...")
+
+	_, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := app.Shutdown(); err != nil {
+		log.Fatalf("❌ Forced shutdown: %v", err)
 	}
+
+	log.Println("✅ Server shutdown complete.")
 }

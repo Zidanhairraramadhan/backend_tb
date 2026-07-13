@@ -1,0 +1,36 @@
+# fly.toml — Fly.io deployment configuration
+# Dokumentasi: https://fly.io/docs/reference/configuration/
+
+app = "musiclink-backend"          # Ganti dengan nama app Anda di Fly.io
+primary_region = "sin"             # Singapore (terdekat dari Indonesia)
+
+[build]
+  # Menggunakan Dockerfile multi-stage yang sudah dibuat
+
+[env]
+  PORT = "8080"                    # Fly.io menggunakan port 8080 secara default
+
+[http_service]
+  internal_port = 8080
+  force_https = true               # Otomatis redirect HTTP → HTTPS
+  auto_stop_machines = true        # Hemat resource saat idle
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Health check
+[[services.http_checks]]
+  interval = "30s"
+  timeout = "10s"
+  grace_period = "10s"
+  method = "GET"
+  path = "/health"
