@@ -64,7 +64,7 @@ func (r *UserRepository) GetByUsernameWithLinks(username string) (*model.User, e
 func (r *UserRepository) GetPublicProfileByUsername(username string) (*model.User, error) {
 	var user model.User
 	err := r.db.Preload("Links", func(db *gorm.DB) *gorm.DB {
-		return db.Where("active = ?", true).Order("created_at desc")
+		return db.Where("active = ?", true).Order("position ASC, created_at DESC")
 	}).Where("username = ?", username).First(&user).Error
 	if err != nil {
 		return nil, err

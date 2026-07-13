@@ -296,3 +296,36 @@ func (h *LinkHandler) IncrementClickCounts(c *fiber.Ctx) error {
 		"message": "Click registered successfully",
 	})
 }
+
+// ReorderLinks batch-updates position for all user links
+// @Summary      Reorder links
+// @Description  Update the position/order of all links belonging to the authenticated user
+// @Tags         links
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        items  body  []repository.ReorderItem  true  "Array of {id, position} items"
+// @Success      200    {object}  map[string]interface{}
+// @Failure      400    {object}  map[string]interface{}
+// @Failure      401    {object}  map[string]interface{}
+// @Router       /api/links/reorder [put]
+func (h *LinkHandler) ReorderLinks(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+
+	var items []repository.ReorderItem
+	if err := c.BodyParser(&items); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid JSON request. Expected array of {id, position} objects."})
+	}
+
+	if len(items) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No items to reorder"})
+	}
+
+	if err := h.linkRepo.ReorderLinks(userID, items); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to reorder links"})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Links reordered successfully",
+	})
+}

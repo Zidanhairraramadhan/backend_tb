@@ -61,7 +61,7 @@ func ConnectDB() {
 
 	// Auto Migration
 	log.Println("🔧 Running GORM AutoMigrations...")
-	err = DB.AutoMigrate(&model.User{}, &model.Link{})
+	err = DB.AutoMigrate(&model.User{}, &model.Link{}, &model.ClickLog{})
 	if err != nil {
 		log.Fatalf("❌ Database Migration Failed: %v", err)
 	}
