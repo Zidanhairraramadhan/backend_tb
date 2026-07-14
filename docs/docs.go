@@ -11,9 +11,8 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
+            "name": "MusicLink Support",
+            "email": "support@musiclink.app"
         },
         "license": {
             "name": "Apache 2.0",
@@ -24,6 +23,372 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns total users, links, clicks, and 5 recent users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get global stats (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of every registered user along with their music links embedded in each user object",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get all users (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.User"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/users/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin can delete any user by user ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Delete a user (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target User ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/users/{id}/password": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin can forcefully reset any user's password by user ID. Does not require the current password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Force change user password (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target User ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New password body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/daily": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get click counts per day for the last 7 days",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get daily click analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/monthly": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get click counts per month for the last 12 months",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get monthly click analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/sources": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get click distribution by traffic source (referrer)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get traffic source analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/analytics/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get total clicks, weekly growth, and most active day",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Get analytics summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/change-password": {
             "put": {
                 "security": [
@@ -78,6 +443,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/link/metadata": {
+            "get": {
+                "description": "Fetch title and thumbnail image of a link using public oEmbed APIs (no auth required). Supports Spotify, YouTube, SoundCloud, and TikTok.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "metadata"
+                ],
+                "summary": "Get link metadata",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL (e.g. https://open.spotify.com/track/...)",
+                        "name": "url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/links": {
             "get": {
                 "security": [
@@ -85,7 +494,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get all links belonging to the authenticated user",
+                "description": "Get all links belonging to the authenticated user. Supports pagination, search, and platform filter.",
                 "produces": [
                     "application/json"
                 ],
@@ -93,14 +502,38 @@ const docTemplate = `{
                     "links"
                 ],
                 "summary": "Get user links",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default: 0 = all)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by title or URL",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by platform (e.g. spotify, youtube)",
+                        "name": "platform",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Link"
-                            }
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "401": {
@@ -165,6 +598,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/links/reorder": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the position/order of all links belonging to the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Reorder links",
+                "parameters": [
+                    {
+                        "description": "Array of {id, position} items",
+                        "name": "items",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/repository.ReorderItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/links/{id}": {
             "get": {
                 "security": [
@@ -182,8 +672,8 @@ const docTemplate = `{
                 "summary": "Get link detail",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Link ID",
+                        "type": "string",
+                        "description": "Link ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -238,8 +728,8 @@ const docTemplate = `{
                 "summary": "Update link",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Link ID",
+                        "type": "string",
+                        "description": "Link ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -308,8 +798,8 @@ const docTemplate = `{
                 "summary": "Delete link",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Link ID",
+                        "type": "string",
+                        "description": "Link ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -359,8 +849,8 @@ const docTemplate = `{
                 "summary": "Increment link click",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Link ID",
+                        "type": "string",
+                        "description": "Link ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -475,6 +965,89 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/public/link/{id}/click": {
+            "post": {
+                "description": "Logs a detailed click event (referrer, device) and increments click counter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Track link click",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Link ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/public/users/{username}": {
+            "get": {
+                "description": "Get public bio details and links of an artist by username",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Get public profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Artist username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Authenticate user and return JWT bearer token",
@@ -516,6 +1089,48 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/p/{username}": {
+            "get": {
+                "description": "Returns minimal HTML with OG tags for social media crawlers, redirects normal users to SPA",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "public"
+                ],
+                "summary": "Serve OpenGraph meta tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Artist username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML with OG meta tags",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "302": {
+                        "description": "Redirect to SPA",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -607,28 +1222,24 @@ const docTemplate = `{
     "definitions": {
         "model.ChangePasswordRequest": {
             "type": "object",
-            "required": [
-                "current_password",
-                "new_password"
-            ],
             "properties": {
                 "current_password": {
                     "type": "string"
                 },
                 "new_password": {
-                    "type": "string",
-                    "minLength": 6
+                    "type": "string"
                 }
             }
         },
         "model.CreateLinkRequest": {
             "type": "object",
-            "required": [
-                "platform",
-                "title",
-                "url"
-            ],
             "properties": {
+                "embed": {
+                    "type": "boolean"
+                },
+                "image_url": {
+                    "type": "string"
+                },
                 "platform": {
                     "type": "string"
                 },
@@ -652,11 +1263,20 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "embed": {
+                    "type": "boolean"
+                },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
                 },
                 "platform": {
                     "type": "string"
+                },
+                "position": {
+                    "type": "integer"
                 },
                 "title": {
                     "type": "string"
@@ -665,16 +1285,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },
         "model.LoginRequest": {
             "type": "object",
-            "required": [
-                "password",
-                "username"
-            ],
             "properties": {
                 "password": {
                     "type": "string"
@@ -687,10 +1303,16 @@ const docTemplate = `{
         "model.ProfileRequest": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
                 "bio": {
                     "type": "string"
                 },
                 "country": {
+                    "type": "string"
+                },
+                "cover_url": {
                     "type": "string"
                 },
                 "genre": {
@@ -703,11 +1325,6 @@ const docTemplate = `{
         },
         "model.RegisterRequest": {
             "type": "object",
-            "required": [
-                "name",
-                "password",
-                "username"
-            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -726,6 +1343,12 @@ const docTemplate = `{
                 "active": {
                     "type": "boolean"
                 },
+                "embed": {
+                    "type": "boolean"
+                },
+                "image_url": {
+                    "type": "string"
+                },
                 "platform": {
                     "type": "string"
                 },
@@ -743,10 +1366,16 @@ const docTemplate = `{
                 "avatar_initial": {
                     "type": "string"
                 },
+                "avatar_url": {
+                    "type": "string"
+                },
                 "bio": {
                     "type": "string"
                 },
                 "country": {
+                    "type": "string"
+                },
+                "cover_url": {
                     "type": "string"
                 },
                 "created_at": {
@@ -756,7 +1385,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
+                },
+                "links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Link"
+                    }
                 },
                 "name": {
                     "type": "string"
@@ -771,11 +1406,22 @@ const docTemplate = `{
                     "type": "boolean"
                 }
             }
+        },
+        "repository.ReorderItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                }
+            }
         }
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "description": "Type \"Bearer \" followed by your JWT token.",
+            "description": "Enter your JWT token in the format: Bearer \u003ctoken\u003e",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
@@ -786,11 +1432,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:5000",
+	Host:             "musiclink-backend-production.up.railway.app",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "MusicLink API",
-	Description:      "This is the smart music profile link aggregator API server.",
+	Description:      "Smart Music Profile Link Aggregator — One Link for All Your Music.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

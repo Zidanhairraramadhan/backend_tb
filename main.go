@@ -30,7 +30,7 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:5000
+// @host      musiclink-backend-production.up.railway.app
 // @BasePath  /
 
 // @securityDefinitions.apikey  BearerAuth

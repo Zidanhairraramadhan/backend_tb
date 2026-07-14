@@ -5,24 +5,20 @@ definitions:
       current_password:
         type: string
       new_password:
-        minLength: 6
         type: string
-    required:
-    - current_password
-    - new_password
     type: object
   model.CreateLinkRequest:
     properties:
+      embed:
+        type: boolean
+      image_url:
+        type: string
       platform:
         type: string
       title:
         type: string
       url:
         type: string
-    required:
-    - platform
-    - title
-    - url
     type: object
   model.Link:
     properties:
@@ -32,16 +28,22 @@ definitions:
         type: integer
       created_at:
         type: string
+      embed:
+        type: boolean
       id:
-        type: integer
+        type: string
+      image_url:
+        type: string
       platform:
         type: string
+      position:
+        type: integer
       title:
         type: string
       url:
         type: string
       user_id:
-        type: integer
+        type: string
     type: object
   model.LoginRequest:
     properties:
@@ -49,15 +51,16 @@ definitions:
         type: string
       username:
         type: string
-    required:
-    - password
-    - username
     type: object
   model.ProfileRequest:
     properties:
+      avatar_url:
+        type: string
       bio:
         type: string
       country:
+        type: string
+      cover_url:
         type: string
       genre:
         type: string
@@ -72,15 +75,15 @@ definitions:
         type: string
       username:
         type: string
-    required:
-    - name
-    - password
-    - username
     type: object
   model.UpdateLinkRequest:
     properties:
       active:
         type: boolean
+      embed:
+        type: boolean
+      image_url:
+        type: string
       platform:
         type: string
       title:
@@ -92,16 +95,24 @@ definitions:
     properties:
       avatar_initial:
         type: string
+      avatar_url:
+        type: string
       bio:
         type: string
       country:
+        type: string
+      cover_url:
         type: string
       created_at:
         type: string
       genre:
         type: string
       id:
-        type: integer
+        type: string
+      links:
+        items:
+          $ref: '#/definitions/model.Link'
+        type: array
       name:
         type: string
       role:
@@ -111,13 +122,19 @@ definitions:
       verified:
         type: boolean
     type: object
-host: localhost:5000
+  repository.ReorderItem:
+    properties:
+      id:
+        type: string
+      position:
+        type: integer
+    type: object
+host: musiclink-backend-production.up.railway.app
 info:
   contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: This is the smart music profile link aggregator API server.
+    email: support@musiclink.app
+    name: MusicLink Support
+  description: Smart Music Profile Link Aggregator — One Link for All Your Music.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -125,6 +142,247 @@ info:
   title: MusicLink API
   version: "1.0"
 paths:
+  /api/admin/stats:
+    get:
+      description: Returns total users, links, clicks, and 5 recent users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get global stats (Admin)
+      tags:
+      - admin
+  /api/admin/users:
+    get:
+      description: Returns a list of every registered user along with their music
+        links embedded in each user object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all users (Admin)
+      tags:
+      - admin
+  /api/admin/users/{id}:
+    delete:
+      description: Admin can delete any user by user ID.
+      parameters:
+      - description: Target User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a user (Admin)
+      tags:
+      - admin
+  /api/admin/users/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: Admin can forcefully reset any user's password by user ID. Does
+        not require the current password.
+      parameters:
+      - description: Target User ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New password body
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Force change user password (Admin)
+      tags:
+      - admin
+  /api/analytics/daily:
+    get:
+      description: Get click counts per day for the last 7 days
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get daily click analytics
+      tags:
+      - analytics
+  /api/analytics/monthly:
+    get:
+      description: Get click counts per month for the last 12 months
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get monthly click analytics
+      tags:
+      - analytics
+  /api/analytics/sources:
+    get:
+      description: Get click distribution by traffic source (referrer)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get traffic source analytics
+      tags:
+      - analytics
+  /api/analytics/summary:
+    get:
+      description: Get total clicks, weekly growth, and most active day
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get analytics summary
+      tags:
+      - analytics
   /api/change-password:
     put:
       consumes:
@@ -160,18 +418,66 @@ paths:
       summary: Change password
       tags:
       - auth
-  /api/links:
+  /api/link/metadata:
     get:
-      description: Get all links belonging to the authenticated user
+      description: Fetch title and thumbnail image of a link using public oEmbed APIs
+        (no auth required). Supports Spotify, YouTube, SoundCloud, and TikTok.
+      parameters:
+      - description: URL (e.g. https://open.spotify.com/track/...)
+        in: query
+        name: url
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/model.Link'
-            type: array
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "502":
+          description: Bad Gateway
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get link metadata
+      tags:
+      - metadata
+  /api/links:
+    get:
+      description: Get all links belonging to the authenticated user. Supports pagination,
+        search, and platform filter.
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 0 = all)'
+        in: query
+        name: limit
+        type: integer
+      - description: Search by title or URL
+        in: query
+        name: search
+        type: string
+      - description: Filter by platform (e.g. spotify, youtube)
+        in: query
+        name: platform
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
         "401":
           description: Unauthorized
           schema:
@@ -220,11 +526,11 @@ paths:
     delete:
       description: Remove link by ID
       parameters:
-      - description: Link ID
+      - description: Link ID (UUID)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -256,11 +562,11 @@ paths:
     get:
       description: Get link by ID, only accessible by link owner or admin
       parameters:
-      - description: Link ID
+      - description: Link ID (UUID)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -293,11 +599,11 @@ paths:
       - application/json
       description: Update fields of an existing link by ID
       parameters:
-      - description: Link ID
+      - description: Link ID (UUID)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       - description: Link update fields
         in: body
         name: link
@@ -342,11 +648,11 @@ paths:
       description: Tambah hitungan klik sebesar +1 pada sebuah tautan berdasarkan
         ID-nya. Dipanggil oleh halaman publik setiap kali pengunjung mengklik tautan.
       parameters:
-      - description: Link ID
+      - description: Link ID (UUID)
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -366,6 +672,44 @@ paths:
             additionalProperties: true
             type: object
       summary: Increment link click
+      tags:
+      - links
+  /api/links/reorder:
+    put:
+      consumes:
+      - application/json
+      description: Update the position/order of all links belonging to the authenticated
+        user
+      parameters:
+      - description: Array of {id, position} items
+        in: body
+        name: items
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/repository.ReorderItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reorder links
       tags:
       - links
   /api/profile:
@@ -422,6 +766,63 @@ paths:
       summary: Update user profile
       tags:
       - profile
+  /api/public/link/{id}/click:
+    post:
+      consumes:
+      - application/json
+      description: Logs a detailed click event (referrer, device) and increments click
+        counter
+      parameters:
+      - description: Link ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Track link click
+      tags:
+      - public
+  /api/public/users/{username}:
+    get:
+      description: Get public bio details and links of an artist by username
+      parameters:
+      - description: Artist username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get public profile
+      tags:
+      - public
   /login:
     post:
       consumes:
@@ -455,6 +856,35 @@ paths:
       summary: Login user
       tags:
       - auth
+  /p/{username}:
+    get:
+      description: Returns minimal HTML with OG tags for social media crawlers, redirects
+        normal users to SPA
+      parameters:
+      - description: Artist username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML with OG meta tags
+          schema:
+            type: string
+        "302":
+          description: Redirect to SPA
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Serve OpenGraph meta tags
+      tags:
+      - public
   /public/{username}:
     get:
       description: Get public bio details and active links of an artist by username
@@ -511,7 +941,7 @@ paths:
       - auth
 securityDefinitions:
   BearerAuth:
-    description: Type "Bearer " followed by your JWT token.
+    description: 'Enter your JWT token in the format: Bearer <token>'
     in: header
     name: Authorization
     type: apiKey
