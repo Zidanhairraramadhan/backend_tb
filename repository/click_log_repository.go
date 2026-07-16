@@ -44,6 +44,18 @@ func (r *ClickLogRepository) GetDailyClicks(userID string, days int) ([]DailyCli
 	var results []DailyClickStats
 	since := time.Now().AddDate(0, 0, -days)
 
+	if r.db.Dialector.Name() == "postgres" {
+		// Syntax untuk PostgreSQL
+		err := r.db.Model(&model.ClickLog{}).
+			Select("created_at::date as date, COUNT(*) as clicks").
+			Where("user_id = ? AND created_at >= ?", userID, since).
+			Group("created_at::date").
+			Order("date ASC").
+			Find(&results).Error
+		return results, err
+	}
+
+	// Syntax default untuk SQLite
 	err := r.db.Model(&model.ClickLog{}).
 		Select("DATE(created_at) as date, COUNT(*) as clicks").
 		Where("user_id = ? AND created_at >= ?", userID, since).
@@ -59,6 +71,18 @@ func (r *ClickLogRepository) GetMonthlyClicks(userID string) ([]MonthlyClickStat
 	var results []MonthlyClickStats
 	since := time.Now().AddDate(-1, 0, 0) // 12 bulan terakhir
 
+	if r.db.Dialector.Name() == "postgres" {
+		// Syntax untuk PostgreSQL (TO_CHAR)
+		err := r.db.Model(&model.ClickLog{}).
+			Select("TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as clicks").
+			Where("user_id = ? AND created_at >= ?", userID, since).
+			Group("TO_CHAR(created_at, 'YYYY-MM')").
+			Order("month ASC").
+			Find(&results).Error
+		return results, err
+	}
+
+	// Syntax default untuk SQLite (strftime)
 	err := r.db.Model(&model.ClickLog{}).
 		Select("strftime('%Y-%m', created_at) as month, COUNT(*) as clicks").
 		Where("user_id = ? AND created_at >= ?", userID, since).
@@ -69,19 +93,9 @@ func (r *ClickLogRepository) GetMonthlyClicks(userID string) ([]MonthlyClickStat
 	return results, err
 }
 
-// GetMonthlyClicksPostgres sama seperti GetMonthlyClicks tapi menggunakan syntax PostgreSQL
+// GetMonthlyClicksPostgres (Deprecated - dipertahankan untuk backward compatibility)
 func (r *ClickLogRepository) GetMonthlyClicksPostgres(userID string) ([]MonthlyClickStats, error) {
-	var results []MonthlyClickStats
-	since := time.Now().AddDate(-1, 0, 0)
-
-	err := r.db.Model(&model.ClickLog{}).
-		Select("TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as clicks").
-		Where("user_id = ? AND created_at >= ?", userID, since).
-		Group("TO_CHAR(created_at, 'YYYY-MM')").
-		Order("month ASC").
-		Find(&results).Error
-
-	return results, err
+	return r.GetMonthlyClicks(userID)
 }
 
 // GetTrafficSources mengambil pengelompokan klik berdasarkan sumber trafik untuk user tertentu
